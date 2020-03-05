@@ -29,6 +29,9 @@ provider:
 functions:
   FlangedJointHistoriesReceived:
     handler: handler.hello
+ 
+  FlangedJointHistoriesReceivedBrij:
+    handler: handler.hello
 resources:
   Resources:
     FlangedJointHistoriesReceivedDeadLetterQueue:
@@ -66,4 +69,42 @@ resources:
           - Name: QueueName
             Value:
               "Fn::GetAtt": [FlangedJointHistoriesReceivedDeadLetterQueue, QueueName]
+        TreatMissingData: notBreaching
+
+#Brij Function
+    FlangedJointHistoriesReceivedDeadLetterQueueBrij:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}FlangedJointHistoriesReceivedDeadLetterBrij
+        MessageRetentionPeriod: 1209600 # 14 days in seconds
+    FlangedJointHistoriesReceivedBrijLambdaFunction:
+      Type: AWS::Lambda::Function
+      Properties:
+         DeadLetterConfig:
+           TargetArn:
+             "Fn::GetAtt": [FlangedJointHistoriesReceivedDeadLetterQueueBrij, Arn]
+
+    AlarmFlangedJointHistoriesReceivedDLQBrij:
+      Type: AWS::CloudWatch::Alarm
+      Properties:
+        AlarmDescription: Triggers an alarm if any message comes in ${self:service}FlangedJointHistoriesReceivedDeadLetterBrij
+        AlarmName: ${self:provider.stage}-${self:service}-FlangedJointHistoriesReceivedDLQ-AlarmBrij
+        AlarmActions:
+          - Fn::Join:
+              - ':'
+              - - 'arn:aws:sns'
+                - Ref: 'AWS::Region'
+                - Ref: 'AWS::AccountId'
+                - "${self:service}Alarm-${self:provider.stage}"
+        ComparisonOperator: GreaterThanOrEqualToThreshold
+        Threshold: 1
+        Namespace: "AWS/SQS"
+        EvaluationPeriods: 1
+        MetricName: ApproximateNumberOfMessagesVisible
+        Period: 60
+        Statistic: Minimum
+        Dimensions:
+          - Name: QueueName
+            Value:
+              "Fn::GetAtt": [FlangedJointHistoriesReceivedDeadLetterQueueBrij, QueueName]
         TreatMissingData: notBreaching
