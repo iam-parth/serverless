@@ -29,6 +29,9 @@ provider:
 functions:
   FlangedJointHistoriesReceived:
     handler: handler.hello
+ 
+  FlangedJointHistoriesBrij:
+    handler: handler.brij
 resources:
   Resources:
     FlangedJointHistoriesReceivedDeadLetterQueue:
