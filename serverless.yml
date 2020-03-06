@@ -12,7 +12,6 @@ provider:
     - Effect: "Allow"
       Action:
         - "s3:ListBucket"
-        - "s3:ListMyBucket"
       Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
     - Effect: "Allow"
       Action:
