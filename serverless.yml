@@ -12,6 +12,7 @@ provider:
     - Effect: "Allow"
       Action:
         - "s3:ListBucket"
+        - "s3:ListMyBucket"
       Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
     - Effect: "Allow"
       Action:
@@ -22,10 +23,13 @@ provider:
           - - "arn:aws:s3:::"
             - "Ref" : "ServerlessDeploymentBucket"
     - Effect: "Allow"
-      Action:
-        - "sqs:SendMessage"
+      Action: [sqs:SendMessage]
       Resource: 
-        - "*"
+        - "Fn::GetAtt": [AlarmFlangedJointHistoriesReceivedDLQ, Arn]
+    - Effect: "Allow"
+      Action: [sqs:SendMessage]
+      Resource:
+        - "Fn::GetAtt": [FlangedJointHistoriesReceivedDeadLetterQueueBrij, Arn]
 functions:
   FlangedJointHistoriesReceived:
     handler: handler.hello
